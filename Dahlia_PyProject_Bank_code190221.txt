@@ -1,0 +1,192 @@
+bank = {} 
+
+import datetime
+import pickle
+
+# save pickle
+def save_pickle():
+    with open('/Users/dahliashamir/Desktop/Python_Projects/pyproject/Dahlia_PyProject_Bank_code190221.pickle',
+          'wb') as handle:
+        pickle.dump(obj=bank, file=handle)
+
+#load pickle
+def load_pickle():
+    file = open('/Users/dahliashamir/Documents/Dahlia/John_Bryce/Python/Dahlia_PyProject_Bank190221.pickle', 'rb')
+    file_name = pickle.load(file)              
+    return file_name
+ 
+class Bank_Account:
+    def __init__(self, name: str, account_num: int, age: int, gender: str):
+         self.name = name
+         self.account_num = account_num
+         self.age = age
+         self.gender = gender
+         self.balance = 0
+         self.currency_converter = Currency_Converter()
+         self.transaction_log = []
+         
+       
+    def get_balance(self):
+        print(f"The balance for account number {self.account_num} is: {self.balance} NIS")
+         
+    def make_a_deposit(self, deposit_sum: int or float, currency: str):
+        new_sum = self.currency_converter.convert_to_nis(currency_type=currency, 
+                                                         money_sum=deposit_sum)
+        self.balance += new_sum
+        self.log_transaction(transaction_type='deposit', 
+                             transaction_sum=deposit_sum, new_balance=self.balance)
+        
+    def make_a_withdrawal(self, withdrawal_sum):
+        if self.balance <= 0:
+            print("Withdrawal cannot be made at this time.")
+        self.balance -= withdrawal_sum
+        self.log_transaction(transaction_type='withdrawal', 
+                             transaction_sum=withdrawal_sum, new_balance=self.balance)
+    
+    def log_transaction(self, transaction_type: 'deposit' or 'withdrawal', 
+                        transaction_sum: int or float, new_balance: int or float):
+         transaction=Transaction(transaction_type, transaction_sum, new_balance)
+         self.transaction_log.append(transaction)
+         
+    def print_transactions(self):
+         for transaction in self.transaction_log[-5:]:
+             print(f"On {transaction.date} a {transaction.transaction_type} was made with the sum of {transaction.transaction_sum} and the new balance is {transaction.new_balance}.")
+
+    def stats(self):
+        deposit_list = []
+        withdrawal_list = []
+        for transaction in self.transaction_log:
+            if transaction.transaction_type == 'deposit':
+                deposit_list.append(transaction.transaction_sum)
+            elif transaction.transaction_type == 'withdrawal':
+                withdrawal_list.append(transaction.transaction_sum)
+        if len(deposit_list) == 0:
+            avg_deposit = "No Deposits"
+        else:    
+            avg_deposit = sum(deposit_list)/len(deposit_list)      
+        if len(withdrawal_list) == 0:
+            avg_withdrawal = "No Withdrawals"
+        else: 
+            avg_withdrawal = sum(withdrawal_list)/len(withdrawal_list)
+        print(f"The average of your deposits is {avg_deposit} and the average of your withdrawals is {avg_withdrawal}. ")    
+
+class Currency_Converter:
+    def __init__(self):
+        self.currency_dict={'dollar':3.5,'euro':4, 'nis':1}
+        
+    def convert_to_nis(self, currency_type: str, money_sum: int or float):
+        new_sum=money_sum * self.currency_dict[currency_type]
+        return new_sum
+    
+    #def convert_nis_to_dollar(self, currency_type: str, money_sum: int or float):
+     #   new_sum=money_sum / self.currency_dict[currency_type]
+      #  return new_sum
+
+
+class Transaction:
+    def __init__(self, transaction_type: 'deposit' or 'withdrawal', 
+                 transaction_sum: int or float, new_balance: int or float):
+        self.date = str(datetime.datetime.today()).split()
+        self.transaction_type = transaction_type
+        self.transaction_sum = transaction_sum  
+        self.new_balance = new_balance          
+  
+       
+
+
+while True:
+    command = int(input("Please enter one of the numbers: [0:exit, 1:create account, 2: check balance , 3: bank transaction] --> "))
+    if command == 0:
+        break
+    
+    elif command == 1:
+        name = input("Enter name: ")
+        account_num = int(input("Enter your account number: "))
+        age = int(input("Enter your age: "))
+        gender = input("type 'M' for male and 'F' for female: ")
+        account = Bank_Account(name, account_num, age, gender)
+        bank[name] = account
+        continue
+    
+    elif command == 2:
+        name = input("Please type your name: ")
+        bank[name].get_balance()
+        transactions = int(input("Would you like a printout of your transactions? Type 1: yes, 2: no. "))
+        if transactions == 1:
+            bank[name].print_transactions()
+            bank[name].stats()
+            continue
+            
+        elif transactions == 2:
+            continue
+    
+    elif command == 3:
+        command3 = int(input("What kind of transaction will you be making today? 0: exit, 1: deposit, 2: withdrawal. "))
+        if command3 == 0:
+            break
+        
+        elif command3 == 1:
+            name = input("Enter name: ")
+            deposit = float(input("How much will you be depositing today? "))
+            currency = str(input("What currency will you be depositing? ['dollar', 'euro', 'nis'] "))
+            bank[name].make_a_deposit(deposit_sum=deposit, currency=currency)
+            print(f"{name}: You have deposited {deposit}. Your balance is now {bank[name].balance} NIS.")
+            continue
+        
+        elif command3 == 2:
+            name = input("Enter name: ")
+            if bank[name].balance <= 0:
+                print("You cannot have a negative balance. No withdrawal can be made.")
+                break
+            
+            else:
+                withdrawal = float(input("What will you be withdrawing from your account today? "))
+                bank[name].make_a_withdrawal(withdrawal_sum=withdrawal)
+                print(f"{name}: You withdrew {withdrawal}. Your balance is now {bank[name].balance} NIS.")
+                continue
+            
+    else:
+        print("Your entry was incorrect. Enter one of the choices given.")
+        continue
+    
+print("Thank you for working with Gringotts Wizarding Bank.")
+
+
+
+#saving with pickel 
+save_pickle()
+
+
+
+Please type your name: Hermione
+The balance for account number 2020 is: 3500.0 NIS
+
+Would you like a printout of your transactions? Type 1: yes, 2: no. 1
+On ['2021-02-19', '12:28:31.754376'] a deposit was made with the sum of 500.0 and the new balance is 560.0.
+On ['2021-02-19', '12:28:44.482116'] a withdrawal was made with the sum of 90.0 and the new balance is 470.0.
+On ['2021-02-19', '12:30:57.753703'] a withdrawal was made with the sum of 90.0 and the new balance is 380.0.
+On ['2021-02-19', '12:31:14.714797'] a deposit was made with the sum of 800.0 and the new balance is 3580.0.
+On ['2021-02-19', '12:31:32.995918'] a withdrawal was made with the sum of 80.0 and the new balance is 3500.0.
+The average of your deposits is 438.3333333333333 and the average of your withdrawals is 86.66666666666667. 
+
+Please type your name: Harry
+The balance for account number 1955 is: 3954.0 NIS
+
+Would you like a printout of your transactions? Type 1: yes, 2: no. 1
+On ['2021-02-19', '12:26:13.081396'] a deposit was made with the sum of 900.0 and the new balance is 3150.0.
+On ['2021-02-19', '12:29:06.538595'] a deposit was made with the sum of 904.0 and the new balance is 4054.0.
+On ['2021-02-19', '12:30:16.507914'] a deposit was made with the sum of 500.0 and the new balance is 4554.0.
+On ['2021-02-19', '12:30:31.874820'] a withdrawal was made with the sum of 600.0 and the new balance is 3954.0.
+The average of your deposits is 768.0 and the average of your withdrawals is 600.0. 
+
+Please type your name: Ron
+The balance for account number 4567 is: 890.0 NIS
+
+Would you like a printout of your transactions? Type 1: yes, 2: no. 1
+On ['2021-02-19', '12:27:46.826373'] a deposit was made with the sum of 500.0 and the new balance is 500.0.
+On ['2021-02-19', '12:28:14.011158'] a deposit was made with the sum of 500.0 and the new balance is 1000.0.
+On ['2021-02-19', '12:29:49.538797'] a withdrawal was made with the sum of 60.0 and the new balance is 940.0.
+On ['2021-02-19', '12:30:00.642889'] a withdrawal was made with the sum of 50.0 and the new balance is 890.0.
+The average of your deposits is 500.0 and the average of your withdrawals is 55.0. 
+
+
